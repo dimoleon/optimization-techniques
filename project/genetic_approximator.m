@@ -1,12 +1,15 @@
-function [best_individual, best_error] = genetic_approximator(u1_bounds, u2_bounds, u1_train, u2_train, y_train) 
+function [best_individual, best_error] = genetic_approximator(u1_train, u2_train, y_train, gaussian_num) 
     POPULATION_SIZE = 200; 
     MAX_GENERATIONS = 12000; 
     TARGET_ERROR = 0.1; 
-    GAUSSIAN_NUM = 15; 
     MUTATION_RATE = 0.05; 
     MUTATION_STRENGTH = 0.1; 
     RELATIVE_WEIGHT_BOUNDS = [-4 4]; 
     RELATIVE_STDV_BOUNDS = [0.03 0.3]; 
+    CENTER_TOL = 0.05;
+
+    u1_bounds = [min(u1_train) - CENTER_TOL, max(u1_train) + CENTER_TOL]; 
+    u2_bounds = [min(u2_train) - CENTER_TOL, max(u2_train + CENTER_TOL)]; 
 
     u1_len = u1_bounds(2) - u1_bounds(1); 
     u2_len = u2_bounds(2) - u2_bounds(1); 
@@ -14,22 +17,21 @@ function [best_individual, best_error] = genetic_approximator(u1_bounds, u2_boun
     y_amp = max(abs(y_train - y_mean)); 
 
     % n_train = size(y_train, 1);
-    % add a normalization step or make bounds parametric 
 
     weight_bounds = y_amp * RELATIVE_WEIGHT_BOUNDS; 
     stdv1_bounds = u1_len * RELATIVE_STDV_BOUNDS;
     stdv2_bounds = u2_len * RELATIVE_STDV_BOUNDS; 
 
-    weights = weight_bounds(1) + (weight_bounds(2) - weight_bounds(1)) .* rand(GAUSSIAN_NUM, POPULATION_SIZE);
-    center1 = u1_bounds(1) + u1_len * rand(GAUSSIAN_NUM, POPULATION_SIZE);
-    center2 = u2_bounds(1) + u2_len * rand(GAUSSIAN_NUM, POPULATION_SIZE);
-    stdv1 = stdv1_bounds(1) + (stdv1_bounds(2) - stdv1_bounds(1)) .* rand(GAUSSIAN_NUM, POPULATION_SIZE);
-    stdv2 = stdv2_bounds(1) + (stdv2_bounds(2) - stdv2_bounds(1)) .* rand(GAUSSIAN_NUM, POPULATION_SIZE);
+    weights = weight_bounds(1) + (weight_bounds(2) - weight_bounds(1)) .* rand(gaussian_num, POPULATION_SIZE);
+    center1 = u1_bounds(1) + u1_len * rand(gaussian_num, POPULATION_SIZE);
+    center2 = u2_bounds(1) + u2_len * rand(gaussian_num, POPULATION_SIZE);
+    stdv1 = stdv1_bounds(1) + (stdv1_bounds(2) - stdv1_bounds(1)) .* rand(gaussian_num, POPULATION_SIZE);
+    stdv2 = stdv2_bounds(1) + (stdv2_bounds(2) - stdv2_bounds(1)) .* rand(gaussian_num, POPULATION_SIZE);
 
     % encode all population parameters in one matrix 
-    population = zeros(POPULATION_SIZE, 5 * GAUSSIAN_NUM); 
+    population = zeros(POPULATION_SIZE, 5 * gaussian_num); 
 
-    for i = 1:GAUSSIAN_NUM
+    for i = 1:gaussian_num
         curr_col = (i - 1) * 5 + 1; 
 
         population(:, curr_col) = weights(i, :)';
@@ -45,7 +47,7 @@ function [best_individual, best_error] = genetic_approximator(u1_bounds, u2_boun
 
     errors = zeros(POPULATION_SIZE, 1); 
     for i = 1:POPULATION_SIZE
-        errors(i) = evaluator(population(i, :), u1_train, u2_train, y_train, GAUSSIAN_NUM);
+        errors(i) = evaluator(population(i, :), u1_train, u2_train, y_train, gaussian_num);
     end
 
     for generation = 1:MAX_GENERATIONS
@@ -85,7 +87,7 @@ function [best_individual, best_error] = genetic_approximator(u1_bounds, u2_boun
             ascendant2 = population(ascendant2_idx, :); 
 
             % crossover ascendant mixing, using block parameter cuts 
-            cut_idx = randi(GAUSSIAN_NUM - 1); 
+            cut_idx = randi(gaussian_num - 1); 
             cut_idx = cut_idx * 5; 
 
             descendant1 = [ascendant1(1:cut_idx), ascendant2(cut_idx+1:end)];
@@ -108,7 +110,7 @@ function [best_individual, best_error] = genetic_approximator(u1_bounds, u2_boun
 
         % elitism part 2; remove weekest new individual in favor of best past individual 
         for j = 1:POPULATION_SIZE
-            errors(j) = evaluator(descendants(j, :), u1_train, u2_train, y_train, GAUSSIAN_NUM); 
+            errors(j) = evaluator(descendants(j, :), u1_train, u2_train, y_train, gaussian_num); 
         end
 
         [~, worst_idx] = max(errors); 
