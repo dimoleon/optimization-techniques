@@ -1,12 +1,12 @@
 function [best_individual, best_error] = genetic_approximator(u1_train, u2_train, y_train, gaussian_num) 
     POPULATION_SIZE = 200; 
     MAX_GENERATIONS = 12000; 
-    TARGET_ERROR = 0.1; 
     MUTATION_RATE = 0.05; 
     MUTATION_STRENGTH = 0.1; 
     RELATIVE_WEIGHT_BOUNDS = [-4 4]; 
     RELATIVE_STDV_BOUNDS = [0.03 0.3]; 
     CENTER_TOL = 0.05;
+    TARGET_ERROR = 0.1; 
 
     u1_bounds = [min(u1_train) - CENTER_TOL, max(u1_train) + CENTER_TOL]; 
     u2_bounds = [min(u2_train) - CENTER_TOL, max(u2_train + CENTER_TOL)]; 

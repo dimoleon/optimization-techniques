@@ -3,3 +3,9 @@
 *.jpg
 *.zip
 *media/
+*.fdb_latexmk
+*.aux
+*.fls
+*.out
+*.synctex.gz
+*.log
