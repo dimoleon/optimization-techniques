@@ -13,6 +13,7 @@ function y_predicted = reconstructor(individual, u1, u2, gaussian_num)
         exp2 = -((u2 - c2(i)) ./ (2 * s2(i))).^2;
 
         curr_gaussian = exp(exp1 + exp2);
-        y_predicted = y_predicted + w(i) * curr_gaussian; 
+        y_predicted = y_predicted + w(i) * curr_gaussian;
     end
 end
+
